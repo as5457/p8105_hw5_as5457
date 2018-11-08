@@ -74,7 +74,7 @@ problem 2
 Reading in the homicide dataset
 
 ```{r}
-homicide_data = read_csv("./data/homicide-data.csv") %>% 
+homicide_data = read_csv("./homicide-data.csv") %>% 
   janitor::clean_names()
 ```
 
@@ -84,6 +84,9 @@ Create a city_state variable (e.g. “Baltimore, MD”) and then summarize withi
 
 ```{r}
 homicide_data %>% 
-  mutate(city_state = str_c(city, state, sep = ","))
+  mutate(city_state = str_c(city, state, sep = ", ")) %>% 
+  group_by(city_state) %>% 
+  nest() %>% 
+  mutate (total_homicides = map(.x = data, ~.x %>% count()))
 ```
 
