@@ -83,10 +83,16 @@ homicide_data = read_csv("./homicide-data.csv") %>%
 Create a city_state variable (e.g. “Baltimore, MD”) and then summarize within cities to obtain the total number of homicides and the number of unsolved homicides (those for which the disposition is “Closed without arrest” or “Open/No arrest”).
 
 ```{r}
-homicide_data %>% 
+homicide_totals = homicide_data %>% 
   mutate(city_state = str_c(city, state, sep = ", ")) %>% 
   group_by(city_state) %>% 
   nest() %>% 
-  mutate (total_homicides = map(.x = data, ~.x %>% count()))
+  mutate (total_homicides = map(.x = data, ~.x %>% count()),
+          total_unsolved = map(.x = data, ~.x %>% 
+                                 filter(disposition %in% c("Closed without arrest","Open/No arrest")) %>% 
+                                 count())) %>% 
+  select(city_state, total_homicides, total_unsolved) %>% 
+  unnest() %>% 
+  mutate(total_homicides = n, total_unsolved = n1)
 ```
 
