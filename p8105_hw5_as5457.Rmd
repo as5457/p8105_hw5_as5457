@@ -46,7 +46,10 @@ datasets
 
 Let's try to tidy the dataset
 ```{r}
-participants = unnest(datasets)
+participants = unnest(datasets) %>% 
+  separate (subjects, into = c("arm", "id"), sep = "_") %>% 
+  separate (id, into = c("participant_id", "remove"), sep = 2)
+  
 participants
 ```
 
