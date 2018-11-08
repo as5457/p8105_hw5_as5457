@@ -41,6 +41,12 @@ files
 raw = str_c("./data/", files)
 datasets = tibble(subjects = files) %>% 
   mutate(data = map(raw, read_csv))
-raw
+datasets
+```
+
+Let's try to tidy the dataset
+```{r}
+participants = unnest(datasets)
+participants
 ```
 
