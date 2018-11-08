@@ -48,8 +48,11 @@ Let's try to tidy the dataset
 ```{r}
 participants = unnest(datasets) %>% 
   separate (subjects, into = c("arm", "id"), sep = "_") %>% 
-  separate (id, into = c("participant_id", "remove"), sep = 2)
-  
+  separate (id, into = c("participant_id", "remove"), sep = 2) %>% 
+  select (-remove) %>% 
+  gather (key = week, value = observation, week_1:week_8) %>% 
+  separate (week, into = c("remove", "week"), sep = "_") %>% 
+  select (-remove)
 participants
 ```
 
