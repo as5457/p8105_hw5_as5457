@@ -62,11 +62,28 @@ Make a spaghetti plot showing observations on each subject over time, and commen
 spaghetti = participants %>% 
   mutate(participant_id = as.integer(participant_id),
          arm = as.factor(arm)) %>% 
-  ggplot(aes(x = week, y = observation, color = arm)) +
+  ggplot(aes(x = week, y = observation, color = arm, group = participant_id)) +
   geom_point() + 
   geom_line() +
   facet_grid(~arm)
 spaghetti
 ```
 
+problem 2
+
+Reading in the homicide dataset
+
+```{r}
+homicide_data = read_csv("./data/homicide-data.csv") %>% 
+  janitor::clean_names()
+```
+
+#Describe the raw data. 
+
+Create a city_state variable (e.g. “Baltimore, MD”) and then summarize within cities to obtain the total number of homicides and the number of unsolved homicides (those for which the disposition is “Closed without arrest” or “Open/No arrest”).
+
+```{r}
+homicide_data %>% 
+  mutate(city_state = str_c(city, state, sep = ","))
+```
 
