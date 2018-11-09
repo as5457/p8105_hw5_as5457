@@ -101,8 +101,22 @@ homicide_total
 
 For the city of Baltimore, MD, use the prop.test function to estimate the proportion of homicides that are unsolved; save the output of prop.test as an R object, apply the broom::tidy to this object and pull the estimated proportion and confidence intervals from the resulting tidy dataframe.
 
+```{r}
+baltimore_data = homicide_total %>% 
+  filter (city_state == "Baltimore, MD")
 
+#filtering out data for baltimore. 
 
+baltimore_proptest = 
+  prop.test(baltimore_data$total_unsolved, baltimore_data$total_homicides) %>% 
+  broom::tidy()
+baltimore_proptest
+```
+
+```{r}
+balt_proptest = broom::tidy(prop.test(baltimore_data$total_unsolved, baltimore_data$total_homicides)) %>% 
+  select(estimate, conf.low, conf.high)
+```
 
 
 
