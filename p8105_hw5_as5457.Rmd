@@ -5,12 +5,7 @@ date: "November 7, 2018"
 output: github_document
 ---
 
-Create a tidy dataframe containing data from all participants, including the subject ID, arm, and observations over time:
-
-Start with a dataframe containing all file names; the list.files function will help
-Iterate over file names and read in data for each subject using purrr::map and saving the result as a new variable in the dataframe
-Tidy the result; manipulate file names to include control arm and subject ID, make sure weekly observations are “tidy”, and do any other tidying that’s necessary
-Make a spaghetti plot showing observations on each subject over time, and comment on differences between groups.
+**Problem 1: Analysis of a longitudinal study data that contains a treatment arm and a placebo arm.**
 
 
 ```{r message = F}
@@ -23,53 +18,84 @@ library(purrr)
 In attempting to import the dataset, I am first using the list.files function to view the files for the study participants. There are 20 different files (10 containing data for individuals in the treatment arm and 10 containing data for individuals in the control arm).
 ```{r}
 #Creating a new object "files" to which to store the datafiles.
-list.files("./data")
 files = list.files("./data")
 files
 ```
 
-```{r}
+```{r message = F}
+#Saving the datafiles into raw list and then assigning it to "datasets".
 raw = str_c("./data/", files)
 datasets = tibble(subjects = files) %>% 
   mutate(data = map(raw, read_csv))
 datasets
 ```
 
-Let's try to tidy the dataset
+In order to tidy up the dataset, I took the following steps:
+
 ```{r}
+#Assigning the tidy dataset into "participants" 
 participants = unnest(datasets) %>% 
+
+#Separating the subject variable into treatment "arm" and participant "id" variable.
   separate (subjects, into = c("arm", "id"), sep = "_") %>% 
+  
+#Separating the id varaible into "participant_id" and a variable called "remove" that will be dropped later. 
   separate (id, into = c("participant_id", "remove"), sep = 2) %>% 
+  
+#Dropping the "remove" variable
   select (-remove) %>% 
+  
+#Gathering the week variables under one column. 
   gather (key = week, value = observation, week_1:week_8) %>% 
+  
+#Tidying the week variable. 
   separate (week, into = c("remove", "week"), sep = "_") %>% 
+  
+#Removing the extra column
   select (-remove)
-participants
+
+#Viewing the resulting dataset. 
+head(participants)
 ```
 
-Make a spaghetti plot showing observations on each subject over time, and comment on differences between groups.
+Making a spaghetti plot showing observations on each subject over time.
 
 ```{r}
+#Naming the spaghetti plot, "spaghetti"
 spaghetti = participants %>% 
+  
+#Converting the participant_id into a character variable and the treatment arm varible into a factor variable to be able to piece together the spaghetti plot. 
   mutate(participant_id = as.character(participant_id),
          arm = as.factor(arm)) %>% 
+  
+#Generating spaghettiplot using ggplot. 
   ggplot(aes(x = week, y = observation, color = participant_id, group = participant_id)) +
   geom_point() + 
   geom_line() +
-  facet_grid(~arm)
+  facet_grid(~arm) +
+  labs (
+    title = "Time-trends of participants' condition",
+        x = "Week",
+        y = "Observation"
+  )
+
+#Viewing the spaghetti plot. 
 spaghetti
 ```
 
-problem 2
+In the spaghetti plot above, it appears that with time, the observation values for those in the experimental group appeared to increase whereas for those in the control group, the observation values remained approximately the same. Even though in the experimental group, there are small fluctuations each week, their overall trend seems to be increase with time. 
 
-Reading in the homicide dataset
+-------------------------------------------------------------
+**Problem 2: Analysis of homicide data in 50 large US cities, by the Washington Post.**
+
 
 ```{r}
+#Reading in the dataset
 homicide_data = read_csv("./homicide-data.csv") %>% 
   janitor::clean_names()
 ```
 
-#Describe the raw data. 
+This the dimension of this dataset is `r dim(homicide_data)`.
 
 Create a city_state variable (e.g. “Baltimore, MD”) and then summarize within cities to obtain the total number of homicides and the number of unsolved homicides (those for which the disposition is “Closed without arrest” or “Open/No arrest”).
 
