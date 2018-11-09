@@ -97,7 +97,7 @@ homicide_data = read_csv("./homicide-data.csv") %>%
 
 This the dimension of this raw dataset is `r dim_desc(homicide_data)`. The rows of the dataset contain information regarding each individual convicted of homicide. There are a number of variables included regarding the convicted individual, including their name, race, age, sex, city, state and the decision of their case (disposition). 
 
-Create a city_state variable and then summarizing within cities to obtain the total number of homicides and the number of unsolved homicides (those for which the disposition is “Closed without arrest” or “Open/No arrest”).
+*Creating a city_state variable and then summarizing within cities to obtain the total number of homicides and the number of unsolved homicides.*
 
 ```{r}
 #Creating a new dataset called homicide_totals
@@ -139,48 +139,62 @@ homicide_total = homicide_totals %>%
 homicide_total
 ```
 
-For the city of Baltimore, MD, use the prop.test function to estimate the proportion of homicides that are unsolved; save the output of prop.test as an R object, apply the broom::tidy to this object and pull the estimated proportion and confidence intervals from the resulting tidy dataframe.
+*Proportion test for the city of Baltimore, MD.*
 
 ```{r}
+#Creating a new dataset for Baltimore
 baltimore_data = homicide_total %>% 
   filter (city_state == "Baltimore, MD")
 
-#filtering out data for baltimore. 
-
-baltimore_proptest = 
-  prop.test(baltimore_data$total_unsolved, baltimore_data$total_homicides) %>% 
-  broom::tidy()
-baltimore_proptest
-```
-
-```{r}
+#Setting up proportion test for Baltimore.
 balt_proptest = broom::tidy(prop.test(baltimore_data$total_unsolved, baltimore_data$total_homicides)) %>% 
   select(estimate, conf.low, conf.high)
+
+#Viewing the results for the proportion test for Baltimore. 
+balt_proptest
 ```
 
-Now run prop.test for each of the cities in your dataset, and extract both the proportion of unsolved homicides and the confidence interval for each. Do this within a “tidy” pipeline, making use of purrr::map, purrr::map2, list columns and  unnest as necessary to create a tidy dataframe with estimated proportions and CIs for each city.
+*Proportion test for each US city.*
 
 ```{r}
-homicide_function = map2(.x = homicide_total$total_unsolved, .y = homicide_total$total_homicides, ~ prop.test(.x, .y))
+#Defining a new function that will map the total number of unsolved cases / total number of cases for each city
+homicide_function = 
+  map2(.x = homicide_total$total_unsolved, 
+       .y = homicide_total$total_homicides, 
+       ~ prop.test(.x, .y))
 
-all_proptest = map_df(.x = homicide_function, ~.x %>% 
-                        broom::tidy(.x) %>% 
-                        select(estimate, conf.low, conf.high)) %>% 
-  mutate(city_state = homicide_total$city_state) %>% 
-  select(city_state, everything())
+#Iterating the homicide function for each US city
+all_proptest = 
+  map_df(.x = homicide_function, ~.x %>% 
+                broom::tidy(.x) %>% 
+                select(estimate, conf.low, conf.high)) %>% 
+                mutate(city_state = homicide_total$city_state) %>% 
+                select(city_state, everything())
 
-homicide_data %>% 
-  select(city, state) %>% 
-  group_by(city, state)
+#Viewing the resulting dataset
+head(all_proptest)
 ```
 
+*Plot showing the estimated proportion of unsolved cases to total cases by city (ordered by proportion).*
 
-Plotting the variables
 ```{r}
-all_proptest %>% 
+#Generation the plot
+prop_plot = all_proptest %>% 
+  
+#Mutating to reorder the cities according to the proportion estimate.
   mutate(city_state = forcats::fct_reorder(city_state, estimate)) %>% 
+  
+#Generating the ggplot statement.
   ggplot(aes(x = city_state, y = estimate)) + geom_point() +
   geom_errorbar(mapping = aes(ymin = conf.low, ymax = conf.high)) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs (
+    title = "Estimated Proportion of Unresolved Homicides",
+        x = "City",
+        y = "Estimate"
+  )
+
+#Viewing the plot
+prop_plot
 ```
 
