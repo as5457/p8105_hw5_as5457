@@ -135,3 +135,9 @@ homicide_data %>%
 ```
 
 
+Plotting the variables
+```{r}
+all_proptest %>% 
+  ggplot(aes(x = city_state, y = estimate)) + geom_point()
+```
+
