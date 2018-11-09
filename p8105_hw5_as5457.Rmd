@@ -1,15 +1,9 @@
 ---
-title: "p8105_hw5_as5457"
+title: "Homework 5 - Data Science I"
 author: "Sunny Siddique"
 date: "November 7, 2018"
 output: github_document
 ---
-
-```{r}
-library(tidyverse)
-```
-
-This zip file contains data from a longitudinal study that included a control arm and an experimental arm. Data for each participant is included in a separate file, and file names include the subject ID and arm.
 
 Create a tidy dataframe containing data from all participants, including the subject ID, arm, and observations over time:
 
@@ -19,21 +13,18 @@ Tidy the result; manipulate file names to include control arm and subject ID, ma
 Make a spaghetti plot showing observations on each subject over time, and comment on differences between groups.
 
 
-```{r}
+```{r message = F}
+#Setting global parameters and loading relevant packages
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(purrr)
 ```
 
-Trying to import the dataset.
+In attempting to import the dataset, I am first using the list.files function to view the files for the study participants. There are 20 different files (10 containing data for individuals in the treatment arm and 10 containing data for individuals in the control arm).
 ```{r}
+#Creating a new object "files" to which to store the datafiles.
 list.files("./data")
-```
-
-There are 20 datafiles. 
-
-```{r}
-files <- list.files("./data")
+files = list.files("./data")
 files
 ```
 
@@ -138,6 +129,9 @@ homicide_data %>%
 Plotting the variables
 ```{r}
 all_proptest %>% 
-  ggplot(aes(x = city_state, y = estimate)) + geom_point()
+  mutate(city_state = forcats::fct_reorder(city_state, estimate)) %>% 
+  ggplot(aes(x = city_state, y = estimate)) + geom_point() +
+  geom_errorbar(mapping = aes(ymin = conf.low, ymax = conf.high)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
